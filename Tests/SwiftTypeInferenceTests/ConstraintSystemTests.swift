@@ -2,6 +2,7 @@ import XCTest
 import SwiftcTest
 
 final class ConstraintSystemTests: XCTestCase {
+    // Required: [Q03]
     func testMerge1() {
         let cts = ConstraintSystem()
         let t1 = cts.createTypeVariable()
@@ -11,6 +12,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cts.fixedOrRepresentative(for: t2), t1)
     }
     
+    // Required: [Q03]
     func testMerge2() {
         let cts = ConstraintSystem()
         let t1 = cts.createTypeVariable()
@@ -34,6 +36,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(tf.typeVariables, [t1, t2, t3])
     }
     
+    // Required: [Q03]
     func testMatchVars() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -69,6 +72,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(t1.equivalentTypeVariables(bindings: cs.bindings), [t1, t2, t3, t4, t5, t6])
     }
     
+    // Required: [Q04]
     func testMatchVarInt() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -78,6 +82,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t1), ti)
     }
     
+    // Required: [Q04]
     func testMatchIntVar() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -87,6 +92,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t1), ti)
     }
     
+    // Required: [Q01]
     func testMatchIntInt() {
         let cs = ConstraintSystem()
         let ti = PrimitiveType.int
@@ -104,6 +110,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertNotNil(cs.failedConstraint)
     }
     
+    // Required: [Q04]
     func testMatchIntString2() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -121,6 +128,7 @@ final class ConstraintSystemTests: XCTestCase {
         cs.dump()
     }
     
+    // Required: [Q02] [Q04]
     func testMatchVarFunc1() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -136,6 +144,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t2), ts)
     }
     
+    // Required: [Q02] [Q04]
     func testMatchVarFunc2() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -159,6 +168,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t3), ts)
     }
     
+    // Required: [Q04]
     func testMatchVarFunc3() {
         let cs = ConstraintSystem()
         let t1 = cs.createTypeVariable()
@@ -196,6 +206,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t5), FunctionType(parameter: ts, result: ts))
     }
     
+    // Required: [Q01] [Q04] [Q08]
     func testApplicableFunction1() {
         let cs = ConstraintSystem()
         
@@ -212,6 +223,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(cs.simplify(type: t1), ts)
     }
     
+    // Required: [Q01] [Q04] [Q08]
     func testApplicableFunction2() throws {
         let cts = ConstraintSystem()
         
@@ -234,7 +246,6 @@ final class ConstraintSystemTests: XCTestCase {
         cts.addConstraint(kind: .bind,
                           left: t2,
                           right: FunctionType(parameter: ti, result: ts))
-        cts.dump()
         XCTAssertTrue(c1.isActive)
         
         XCTAssertTrue(cts.simplify())
@@ -242,6 +253,96 @@ final class ConstraintSystemTests: XCTestCase {
         
         XCTAssertEqual(cts.simplify(type: t1), ts)
         XCTAssertEqual(cts.simplify(type: t2), FunctionType(parameter: ti, result: ts))
+    }
+    
+    // Required: [Q01] [Q08]
+    func testApplicableFunction3() {
+        let cts = ConstraintSystem()
+        
+        let ti = PrimitiveType.int
+        let ts = PrimitiveType.string
+        
+        cts.addConstraint(kind: .applicableFunction,
+                          left: FunctionType(parameter: ti, result: ts),
+                          right: FunctionType(parameter: ts, result: ts))
+        XCTAssertFalse(cts.simplify())
+        XCTAssertNotNil(cts.failedConstraint)
+    }
+    
+    // Required: [Q04] [Q08]
+    func testApplicableFunction4() {
+        let cts = ConstraintSystem()
+        
+        let t1 = cts.createTypeVariable()
+        let ti = PrimitiveType.int
+        let toi = OptionalType(PrimitiveType.int)
+        let ts = PrimitiveType.string
+        
+        cts.addConstraint(kind: .applicableFunction,
+                          left: FunctionType(parameter: ti, result: t1),
+                          right: FunctionType(parameter: toi, result: ts))
+        XCTAssertTrue(cts.simplify())
+        XCTAssertEqual(cts.simplify(type: t1), ts)
+    }
+    
+    func testConvFunctionEqual() {
+        let cts = ConstraintSystem()
+        
+        let int = PrimitiveType.int
+        let str = PrimitiveType.string
+        
+        cts.addConstraint(kind: .conversion,
+                          left: FunctionType(parameter: int,
+                                             result: str),
+                          right: FunctionType(parameter: int,
+                                              result: str))
+        XCTAssertTrue(cts.simplify())
+    }
+    
+    func testConvFunctionResultCovariance() {
+        let cts = ConstraintSystem()
+        
+        let int = PrimitiveType.int
+        let str = PrimitiveType.string
+        let ostr = OptionalType(str)
+        
+        cts.addConstraint(kind: .conversion,
+                          left: FunctionType(parameter: int,
+                                             result: str),
+                          right: FunctionType(parameter: int,
+                                              result: ostr))
+        XCTAssertTrue(cts.simplify())
+    }
+    
+    func testConvFunctionParamContravariance() {
+        let cts = ConstraintSystem()
+        
+        let int = PrimitiveType.int
+        let oint = OptionalType(int)
+        let str = PrimitiveType.string
+        
+        cts.addConstraint(kind: .conversion,
+                          left: FunctionType(parameter: oint,
+                                             result: str),
+                          right: FunctionType(parameter: int,
+                                              result: str))
+        XCTAssertTrue(cts.simplify())
+    }
+    
+    func testConvFunctionParamContravarianceResultCovariance() {
+        let cts = ConstraintSystem()
+        
+        let int = PrimitiveType.int
+        let oint = OptionalType(int)
+        let str = PrimitiveType.string
+        let ostr = OptionalType(str)
+        
+        cts.addConstraint(kind: .conversion,
+                          left: FunctionType(parameter: oint,
+                                             result: str),
+                          right: FunctionType(parameter: int,
+                                              result: ostr))
+        XCTAssertTrue(cts.simplify())
     }
     
     func testGatherConstraints1() {
@@ -313,6 +414,7 @@ final class ConstraintSystemTests: XCTestCase {
                        Set(expected))
     }
     
+    // Required: [Q01]
     func testOptionalEqual() throws {
         let cts = ConstraintSystem()
         let sr = cts.matchTypes(kind: .bind,
@@ -322,6 +424,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(sr, .solved)
     }
     
+    // Required: [Q01] [Q09] [Q10]
     func testConvIntToOptInt() throws {
         
         let cts = ConstraintSystem()
@@ -334,6 +437,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(sols.count, 1)
     }
         
+    // Required: [Q01] [Q10] [Q11]
     func testConvOptIntToOptInt() throws {
         let cts = ConstraintSystem()
         
@@ -345,6 +449,7 @@ final class ConstraintSystemTests: XCTestCase {
         XCTAssertEqual(sols.count, 2)
     }
     
+    // Required: [Q01] [Q09] [Q10] [Q11]
     func testConvOptIntToOptOptInt() throws {
         let cts = ConstraintSystem()
         
@@ -355,5 +460,4 @@ final class ConstraintSystemTests: XCTestCase {
         let sols = cts.solve()
         XCTAssertEqual(sols.count, 3)
     }
-
 }
