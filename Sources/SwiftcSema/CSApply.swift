@@ -127,7 +127,10 @@ extension ConstraintSystem.Solution {
             case .deepEquality:
                 return expr
             case .valueToOptional:
-                return InjectIntoOptionalExpr(subExpr: expr, type: toTy)
+                guard let optionalTy = toTy as? OptionalType else {
+                    throw MessageError("not optional type")
+                }
+                return try InjectIntoOptionalExpr(subExpr: coerce(expr: expr, to: optionalTy.wrapped), type: toTy)
             case .optionalToOptional:
                 return try coerceOptionalToOptional(expr: expr, to: toTy)
             }

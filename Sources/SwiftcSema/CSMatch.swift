@@ -183,7 +183,7 @@ extension ConstraintSystem {
         
         let subOptions = decompositionOptions(options)
 
-        let argResult = matchTypes(kind: subKind, left: leftArg, right: rightArg, options: subOptions)
+        let argResult = matchTypes(kind: subKind, left: rightArg, right: leftArg, options: subOptions)
         let retResult = matchTypes(kind: subKind, left: leftRet, right: rightRet, options: subOptions)
         switch (argResult, retResult) {
         case (.solved, .solved): return .solved
