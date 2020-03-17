@@ -6,9 +6,12 @@ let rpath = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.
 
 let package = Package(
     name: "SwiftTypeInference",
+    products: [
+      .library(name: "SwiftcAST", targets: ["SwiftcAST"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git",
-                 .revision("swift-DEVELOPMENT-SNAPSHOT-2019-07-10-m")),
+                 .exact("0.50100.0")),
     ],
     targets: [
         .target(
